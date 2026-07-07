@@ -1,0 +1,42 @@
+  - name: Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: 18
+
+  - name: Install frontend dependencies
+    working-directory: trojan-horse/frontend
+    run: |
+      if [ -f yarn.lock ]; then
+        yarn --frozen-lockfile || yarn
+      else
+        yarn
+      fi
+
+  - name: Build frontend (Vite)
+    working-directory: trojan-horse/frontend
+    run: yarn build
+
+  - name: Install backend dependencies
+    working-directory: trojan-horse/backend
+    run: |
+      if [ -f yarn.lock ]; then
+        yarn --frozen-lockfile || yarn
+      else
+        yarn
+      fi
+
+  - name: Start backend and wait for readiness
+    working-directory: trojan-horse/backend
+    run: |
+      PORT=3001 yarn start > backend.log 2>&1 &
+      npx wait-on http://localhost:3001/health --timeout 30000
+
+  - name: Backend health check
+    run: curl -fS http://localhost:3001/health
+
+  - name: Upload backend log (on failure)
+    if: failure()
+    uses: actions/upload-artifact@v4
+    with:
+      name: backend-log
+      path: trojan-horse/backend/backend.log
