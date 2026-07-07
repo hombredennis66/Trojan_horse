@@ -26,8 +26,12 @@ export default function GeminiChat() {
     setIsLoading(true);
 
     try {
+      // Use Vite env var to allow cross-origin deployments.
+      // Vite exposes env vars via import.meta.env
+      const apiBase = import.meta.env.VITE_API_URL || '';
+
       // 2. Transmit conversation history to backend proxy
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +90,7 @@ export default function GeminiChat() {
           disabled={isLoading}
           style={{ flex: 1, padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '14px', outline: 'none' }}
         />
-        <button type="submit" disabled={isLoading} style={{ marginLeft: '12px', padding: '10px 20px', background: '#0070f3', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}>
+        <button type="submit" disabled={isLoading} style={{ marginLeft: '12px', padding: '10px 20px', background: '#0070f3', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
           Send
         </button>
       </form>
