@@ -11,10 +11,28 @@ app.use(express.json());
 const corsOrigin = process.env.FRONTEND_URL || true;
 app.use(cors({ origin: corsOrigin }));
 
+// Simple health endpoints for readiness/liveness checks
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() });
+});
+
+app.get('/healthz', (req, res) => res.status(200).send('OK'));
+
 // Mount the chat router
 app.use('/api/chat', chatRouter);
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down');
+  server.close(() => process.exit(0));
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down');
+  server.close(() => process.exit(0));
 });
